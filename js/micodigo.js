@@ -7,6 +7,13 @@
 //     document.getElementById("entrada").value = "";
 //     alert("Artículo agregado exitosamente.")
 // }
+function createElementFromHTML(htmlString) {
+    var div = document.createElement('div');
+    div.innerHTML = htmlString.trim();
+  
+    // Change this to div.childNodes to support multiple top-level nodes
+    return div.firstChild; 
+}
 
 function cargaInicial(){
     // var datos = [
@@ -19,22 +26,59 @@ function cargaInicial(){
     // ]
     // localStorage.setItem("datos",JSON.stringify(datos))
     if (!localStorage.getItem("datos")) {
-        localStorage.setItem("datos",[])
+        localStorage.setItem("datos",JSON.stringify([]))
     }
     var d = JSON.parse(localStorage.getItem("datos"))
-    var columnas = ["nombres","apellidos","correo","celular"]
+    var columnas = ["nombres","apellidos","correo","celular","eliminar"]
     var body = document.getElementById("filas");
     console.log(body);
+    var contador = 0
     for (const iterator of d) {
         
         var tr = document.createElement("tr");
         columnas.forEach(element => {
             var td = document.createElement("td");
-            td.appendChild(document.createTextNode(iterator[element]));
+            var text = ""
+            if (element == "eliminar") {
+                text = createElementFromHTML(`<button type="button" class="btn btn-danger" id="${contador}">Eliminar</button>`)
+                
+            }else{
+                text = document.createTextNode(iterator[element])
+            }
+            td.appendChild(text);
             tr.appendChild(td)
         });
         
         body.appendChild(tr);
+        console.log(contador);
+        document.getElementById(`${contador}`).addEventListener("click",function(e){
+            Swal.fire({
+                title: '¿Estas seguro de eliminar el usuario?',
+                
+                showCancelButton: true,
+                confirmButtonText: `Eliminar`,
+                denyButtonText: `Cancelar`,
+              }).then((result) => {
+                /* Read more about isConfirmed, isDenied below */
+                if (result.isConfirmed) {
+                    var d = JSON.parse(localStorage.getItem("datos"))
+                    d.splice(e.target.id,1)
+                    localStorage.setItem("datos",JSON.stringify(d))
+                    Swal.fire({
+                        position: 'top',
+                        icon: 'success',
+                        title: 'Usuario eliminado',
+                        showConfirmButton: false,
+                        timer: 1500
+                    })
+                    
+                    location.reload()
+                    
+                } 
+              })
+            
+        })
+        contador++
     }
 }
 cargaInicial()
